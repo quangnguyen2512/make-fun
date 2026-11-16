@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Solar Warden — Bastion of the Drift</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-state="title">
+  <main id="stage" class="stage">
+    <canvas id="arena" data-testid="game-canvas" aria-label="Solar Warden cosmic arena"></canvas>
+
+    <!-- Minimal Perimeter HUD (visible during playing / paused) -->
+    <div id="hud" class="hud" aria-hidden="true">
+      <div class="hud-cluster hud-top-left">
+        <div class="hull-block">
+          <span class="kicker">HULL</span>
+          <div id="hull-sockets" class="hull-sockets" aria-label="Hull integrity"></div>
+        </div>
+        <div class="nova-block">
+          <div class="nova-header">
+            <span class="kicker">NOVA [Q]</span>
+            <span id="nova-pct" class="nova-pct">0%</span>
+          </div>
+          <div class="nova-track">
+            <div id="nova-trail" class="nova-trail"></div>
+            <div id="nova-fill" class="nova-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-cluster hud-top-center">
+        <div id="wave-badge" class="wave-badge">
+          <span class="kicker">SECTOR</span>
+          <span id="wave-label" class="wave-num">WAVE 1 / 5</span>
+        </div>
+        <div id="boss-bar" class="boss-bar hidden">
+          <span class="boss-name">ECLIPSE LEVIATHAN</span>
+          <div class="boss-track">
+            <div id="boss-trail" class="boss-trail"></div>
+            <div id="boss-fill" class="boss-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-cluster hud-top-right">
+        <div class="score-block">
+          <div class="score-meta">
+            <span class="kicker">SCORE</span>
+            <span id="combo-badge" class="combo-badge hidden">x1</span>
+          </div>
+          <span id="score-value" class="score-value">0</span>
+        </div>
+        <div class="utility-actions">
+          <button id="btn-mute" type="button" class="icon-btn" title="Toggle Sound (M)" aria-label="Toggle Sound" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path id="mute-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+          </button>
+          <button id="btn-pause" type="button" class="icon-btn" title="Pause (P)" aria-label="Pause Game" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+              <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+            </svg>
+          </button>
+          <button id="btn-restart" type="button" class="icon-btn" title="Restart (R)" aria-label="Restart Run" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path>
+              <path d="M3 3v5h5"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="wave-banner" class="wave-banner hidden"></div>
+    </div>
+
+    <!-- Title Screen Overlay (anchored in left negative space beside live astrolabe world) -->
+    <section id="title-screen" class="overlay title-screen" aria-label="Solar Warden Title Screen">
+      <div class="title-lockup">
+        <svg class="title-emblem" viewBox="0 0 496 128" width="496" height="128" role="img" aria-label="Solar Warden">
+          <defs>
+            <linearGradient id="brassGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fde3a7"/>
+              <stop offset="55%" stop-color="#f2ae42"/>
+              <stop offset="100%" stop-color="#b86b1b"/>
+            </linearGradient>
+          </defs>
+          <g transform="translate(48,64)">
+            <circle r="34" fill="none" stroke="#f2ae42" stroke-width="2" opacity="0.45" stroke-dasharray="6 4"/>
+            <circle r="24" fill="#101830" stroke="url(#brassGrad)" stroke-width="2.5"/>
+            <polygon points="0,-20 6,-6 20,0 6,6 0,20 -6,6 -20,0 -6,-6" fill="url(#brassGrad)" stroke="#070b18" stroke-width="1.5"/>
+            <circle r="5" fill="#f9f5eb"/>
+          </g>
+          <text x="102" y="56" fill="url(#brassGrad)" stroke="#070b18" stroke-width="5" paint-order="stroke fill" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="38" letter-spacing="3">SOLAR WARDEN</text>
+          <line x1="104" y1="70" x2="466" y2="70" stroke="#f2ae42" stroke-width="1.5" opacity="0.6"/>
+          <text x="104" y="92" fill="#d9e4f5" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="13" letter-spacing="4.5">BASTION OF THE DRIFT</text>
+        </svg>
+
+        <div class="title-actions">
+          <button id="btn-start" type="button" class="primary-cta" data-start="true">
+            <span>LAUNCH SORTIE</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="6 4 20 12 6 20 6 4"></polygon>
+            </svg>
+          </button>
+          <div id="title-best" class="best-line hidden">BEST SCORE <span id="title-best-num">0</span></div>
+        </div>
+      </div>
+
+      <p class="control-hint">WASD Move · Mouse Aim &amp; Fire · Space Aegis Parry · Q Solar Nova · P Pause</p>
+    </section>
+
+    <!-- Pause Modal -->
+    <section id="pause-modal" class="overlay modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+      <div class="modal-card">
+        <span class="modal-kicker">SORTIE SUSPENDED</span>
+        <h2 id="pause-title" class="modal-heading">PAUSED</h2>
+        <div class="modal-stats">
+          <div class="stat-tile">
+            <span class="kicker">WAVE</span>
+            <span id="pause-wave" class="stat-num">1 / 5</span>
+          </div>
+          <div class="stat-tile">
+            <span class="kicker">SCORE</span>
+            <span id="pause-score" class="stat-num">0</span>
+          </div>
+          <div class="stat-tile">
+            <span class="kicker">PARRIES</span>
+            <span id="pause-parries" class="stat-num">0</span>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button id="btn-resume" type="button" class="primary-cta">RESUME SORTIE</button>
+          <button id="btn-pause-restart" type="button" class="secondary-cta">RESTART</button>
+          <button id="btn-pause-title" type="button" class="ghost-cta">TITLE</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Victory / Defeat Modal -->
+    <section id="end-modal" class="overlay modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="end-title">
+      <div class="modal-card">
+        <span id="end-kicker" class="modal-kicker">SIGNAL LOST</span>
+        <h2 id="end-title" class="modal-heading">BASTION BREACHED</h2>
+        <div class="modal-stats">
+          <div class="stat-tile">
+            <span class="kicker">SCORE</span>
+            <span id="end-score" class="stat-num">0</span>
+          </div>
+          <div class="stat-tile">
+            <span class="kicker">BEST</span>
+            <span id="end-best" class="stat-num">0</span>
+          </div>
+          <div class="stat-tile">
+            <span class="kicker">SECTOR</span>
+            <span id="end-wave" class="stat-num">1 / 5</span>
+          </div>
+          <div class="stat-tile">
+            <span class="kicker">PARRIES</span>
+            <span id="end-parries" class="stat-num">0</span>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button id="btn-play-again" type="button" class="primary-cta" data-start="true">TRY AGAIN</button>
+          <button id="btn-endless" type="button" class="secondary-cta hidden">CONTINUE ENDLESS</button>
+          <button id="btn-end-title" type="button" class="ghost-cta">TITLE</button>
+        </div>
+      </div>
+    </section>
+
+    <p id="sr-status" class="sr-only" role="status" aria-live="polite"></p>
+  </main>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

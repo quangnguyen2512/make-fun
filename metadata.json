@@ -1,0 +1,6 @@
+{
+  "name": "Solar Warden",
+  "description": "Solar Warden: Bastion of the Drift — an original tactical orbital action shooter with Aegis Parry reflection, Solar Nova resonance, 4 distinct enemy archetypes, and a multi-phase boss.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
